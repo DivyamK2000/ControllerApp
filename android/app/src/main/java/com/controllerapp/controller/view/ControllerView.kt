@@ -28,6 +28,8 @@ class ControllerView(context: Context) : View(context) {
 
     private lateinit var leftStick: AnalogStick
     private lateinit var rightStick: AnalogStick
+    private lateinit var dPad: DPad
+    private lateinit var buttons: List<Button> 
     private lateinit var InputProcessor: InputProcessor
 
     //Lifecycle-----------------------------------------
@@ -50,8 +52,21 @@ class ControllerView(context: Context) : View(context) {
             radius = w * 0.18f
         )
 
+        dPad = DPad(
+            centerX = width * 0.2f,
+            centerY = height * 0.6f,
+            size = width * 0.1f
+        )
+
+        buttons = listOf(
+            Button(ButtonType.A, width * 0.8f, height * 0.6f, width * 0.06f),
+            Button(ButtonType.B, width * 0.8f, height * 0.6f, width * 0.06f),
+            Button(ButtonType.X, width * 0.8f, height * 0.6f, width * 0.06f),
+            Button(ButtonType.Y, width * 0.8f, height * 0.6f, width * 0.06f),
+        )
+
         InputProcessor = InputProcessor(
-            lisstOf(leftStick, rightStick)
+            listOf(leftStick, rightStick, dPad) + buttons
         )
     }
 
