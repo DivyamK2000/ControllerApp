@@ -1,8 +1,8 @@
 package com.controllerapp.controller.input
 
 enum class ButtonType {
-    A, B, X, Y,
-    L1, R1,
-    START, SELECT,
-    DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT
+    A(0), B(1), X(2), Y(3),
+    L1(4), R1(5),
+    START(6), SELECT(7),
+    DPAD_UP(8), DPAD_DOWN(9), DPAD_LEFT(10), DPAD_RIGHT(11)
 }

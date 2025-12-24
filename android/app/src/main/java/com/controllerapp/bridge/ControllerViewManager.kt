@@ -6,16 +6,13 @@ import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 
 class ControllerViewManager : SimpleViewManager<ControllerView>() {
-    override fun getName(): String {
-        return "NativeControllerView"
-    }
+    override fun getName(): String = "NativeControllerView"
 
     override fun createViewInstance(reactContext: ThemedReactContext): ControllerView {
-        return ControllerView(reactContext)
-    }
-
-    @ReactProp(name = "layout")
-    fun setLayout(view: ControllerView, layoutJson: String?) {
-        //Placeholder - will parse layout later
+        val view = ControllerView(reactContext)
+        view.attachEmitter(
+            ControllerEventEmitter(reactContext)
+        )
+        return view
     }
 }

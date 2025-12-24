@@ -7,7 +7,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 class ControllerEventEmitter(
     private val reactContext: ReactApplicationContext
 ) {
-    fun emiState(state: ControllerState) {
+    fun emitState(state: ControllerState) {
         val event = mapOf(
             "lx" to state.lx,
             "ly" to state.ly,
