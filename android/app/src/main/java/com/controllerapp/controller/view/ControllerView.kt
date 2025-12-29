@@ -8,10 +8,9 @@ import android.view.MotionEvent
 import android.view.View
 import com.controllerapp.bridge.ControllerEventEmitter
 import com.controllerapp.controller.input.*
-import com.controllerapp.controller.input.AnalogStick
-import com.controllerapp.controller.input.InputProcessor
 import com.controllerapp.controller.state.ControllerState
 import com.controllerapp.controller.math.Vector2
+import kotlin.system.currentTimeMillis
 
 class ControllerView(context: Context) : View(context) {
     // Paint -------------------------------------------
@@ -24,6 +23,43 @@ class ControllerView(context: Context) : View(context) {
     private val debugPaint = Paint().apply {
         color = Color.GREEN
         textSize = 40f
+        isAntiAlias = true
+    }
+
+    private val stickBasePaint = Paint().apply {
+        color = Color.DKGRAY
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private val stickKnobPaint = Paint().apply {
+        color = Color.LTGRAY
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private val buttonPaint = Paint().apply {
+        color = Color.GRAY
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private val buttonPressedPaint = Paint().apply {
+        color = Color.WHITE
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private val dPadPaint = Paint().apply {
+        color = Color.GRAY
+        style = Paint.Style.FILL
+        isAntiAlias = true
+
+    }
+
+    private val dPadPressedPaint = Paint().apply {
+        color = Color.WHITE
+        style = Paint.Style.FILL
         isAntiAlias = true
     }
 
@@ -73,7 +109,7 @@ class ControllerView(context: Context) : View(context) {
             Button(ButtonType.Y, width * 0.8f, height * 0.4f, width * 0.06f),
         )
 
-        InputProcessor = InputProcessor(
+        inputProcessor = InputProcessor(
             listOf(leftStick, rightStick, dPad) + buttons
         )
     }
@@ -108,7 +144,7 @@ class ControllerView(context: Context) : View(context) {
             MotionEvent.ACTION_UP,
             MotionEvent.ACTION_POINTER_UP,
             MotionEvent.ACTION_CANCEL -> {
-                inputProcessor.onPointerUP(pointerId)
+                inputProcessor.onPointerUp(pointerId)
             }
         }
 
@@ -138,8 +174,17 @@ class ControllerView(context: Context) : View(context) {
 
         canvas.drawText(
             "R: ${"%.2f".format(right.x)}, ${"%.2f".format(right.y)}",
-            50f, 100f, debugPaint
+            50f, 150f, debugPaint
         )
+
+        drawStick(canvas, leftStick)
+        drawStick(canvas, rightStick)
+
+        drawDPad(canvas)
+
+        for( button in buttons ) {
+            drawButton(canvas, button)
+        }
 
         //Continous Redraw
         emitStateIfNeeded()
@@ -150,7 +195,8 @@ class ControllerView(context: Context) : View(context) {
 
     private fun emitStateIfNeeded() {
         val now = currentTimeMillis()
-        if (now - lastEmitTime < emitIntervalMs) return lastEmitTime = now
+        if (now - lastEmitTime < emitIntervalMs) return
+        lastEmitTime = now
 
         buttonState.reset()
 
@@ -173,8 +219,91 @@ class ControllerView(context: Context) : View(context) {
             rx = right.x,
             ry = right.y,
             buttons = buttonState.value()
+        )
 
-            eventEmitter.emitState(state)
+        eventEmitter?.emitState(state)
+    }
+
+    //Draw Stick--------------------------------------
+
+    private fun drawStick( canvas: Canvas, stick: AnalogStick ) {
+        val center = stick.center
+        val radius = stick.radius
+
+        //Base
+        canvas.drawCircle(
+            center.x,
+            center.y,
+            radius,
+            stickBasePaint
+        )
+
+        //Knob
+        val value = stick.value()
+        val knobX = center.x + value.x * radius
+        val knobY = center.y + value.y * radius
+
+        canvas.drawCircle(
+            knobX,
+            knobY,
+            radius * 0.4f,
+            stickKnobPaint
+        )
+    }
+
+    private fun drawButton( canvas: Canvas, button: Button ) {
+        val paint = if (button.pressed)
+            buttonPressedPaint
+        else
+            buttonPaint
+
+        canvas.drawCircle(
+            button.x,
+            button.y,
+            button.radius,
+            paint
+        )
+    }
+
+    private fun drawDPad( canvas: Canvas ) {
+        val pad = dPad.size
+        val cx = dPad.centerX
+        val cy = dPad.centerY
+        val arm = pad * 0.6f
+
+        fun drawRect( left: Float, top: Float, right: Float, bottom: Float, pressed: Boolean ){
+            canvas.drawRect(
+                left, top, right, bottom,
+                if (pressed) dPadPressedPaint else dPadPaint
+            )
+        }
+
+        //Up
+        drawRect(
+            cx - arm / 2, cy - size,
+            cx + arm / 2, cy - arm / 2,
+            dPad.isPressed(DPadDirection.UP)
+        )
+
+        //Down
+        drawRect(
+            cx - arm / 2, cy + arm / 2,
+            cx + arm / 2, cy + size,
+            dPad. isPressed(DPadDirection.DOWN)
+        )
+
+        //Left
+        drawRect(
+            cx - size, cy - arm / 2,
+            cx - arm / 2, cy + arm / 2,
+            dPad.isPressed(DPadDirection.LEFT)
+        )
+
+        //Right
+        drawRect(
+            cx + arm / 2, cy - arm / 2,
+            cx + size, cy + arm / 2,
+            dPad.isPressed(DPadDirection.RIGHT)
         )
     }
 }
