@@ -71,6 +71,7 @@ class ControllerView(context: Context) : View(context) {
     private lateinit var buttons: List<Button> 
     private lateinit var inputProcessor: InputProcessor
     private lateinit var eventEmitter: ControllerEventEmitter
+    private lateinit var layout: ControllerLayout
     private val buttonState = ButtonStateBuilder()
 
     private var lastEmitTime = 0L
@@ -83,35 +84,11 @@ class ControllerView(context: Context) : View(context) {
     isFocusableInTouchMode = true
    }
    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
+       super.onSizeChanged(w, h, oldw, oldh)
 
-        //Temporary - hardcoded layout will come later from RN
-        leftStick = AnalogStick(
-            center = Vector2(w * 0.25f, h * 0.7f),
-            radius = w * 0.18f
-        )
+       layout  = DefaultLayout.create(w, h)
 
-        rightStick = AnalogStick(
-            center = Vector2(w * 0.75f, h * 0.7f),
-            radius = w * 0.18f
-        )
-
-        dPad = DPad(
-            centerX = width * 0.2f,
-            centerY = height * 0.6f,
-            size = width * 0.1f
-        )
-
-        buttons = listOf(
-            Button(ButtonType.A, width * 0.8f, height * 0.6f, width * 0.06f),
-            Button(ButtonType.B, width * 0.9f, height * 0.5f, width * 0.06f),
-            Button(ButtonType.X, width * 0.7f, height * 0.5f, width * 0.06f),
-            Button(ButtonType.Y, width * 0.8f, height * 0.4f, width * 0.06f),
-        )
-
-        inputProcessor = InputProcessor(
-            listOf(leftStick, rightStick, dPad) + buttons
-        )
+       applyLayout(layout)
     }
 
     //Touch Handling------------------------------------
@@ -183,7 +160,7 @@ class ControllerView(context: Context) : View(context) {
         drawDPad(canvas)
 
         for( button in buttons ) {
-            drawButton(canvas, button)
+            drawButton(canvas, button )
         }
 
         //Continous Redraw
@@ -304,6 +281,32 @@ class ControllerView(context: Context) : View(context) {
             cx + arm / 2, cy - arm / 2,
             cx + size, cy + arm / 2,
             dPad.isPressed(DPadDirection.RIGHT)
+        )
+    }
+
+    private fun applyLayout(layout: ControllerLayout) {
+        leftStick = AnalogStick(
+            center = Vector2(layout.leftStick.x, layout.leftStick.y),
+            radius = layout.leftStick.radius
+        )
+
+        rightStick = AnalogStick(
+            center = Vector2(layout.rightStick.x, layout,rightStick.y),
+            radius = layout.rightStick.radius
+        )
+
+        dPad = DPad(
+            centerX = layout.dPad.x,
+            centerY = layout.dPad.y,
+            size = layout.dPad.size
+        )
+
+        buttons = layout.buttons.map {
+            Button(it.type, it.x, it.y, it.radius)
+        }
+
+        inputProcessor = InputProcessor(
+            listOf(leftStick, rightStick, dPad) + buttons
         )
     }
 }
